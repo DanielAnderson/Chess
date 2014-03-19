@@ -15,26 +15,24 @@ public class Game {
 	public final boolean LEFT =false;
 	public final boolean RIGHT = true;
 	private Move lastMove;
-	private int moveNumber;
+	public static final boolean WHITE = true;
+	public static final boolean BLACK = false;
 	
 	public Game()
 	{
 		boolean isDefaultSetup=true;
 		myBoard = new Board(isDefaultSetup);
 		whitesTurn=true;
-		moveNumber=0;
 	}
 	public Game(Board theBoard, boolean whitesTurn)
 	{
 		myBoard=theBoard;
 		this.whitesTurn=whitesTurn;
-		moveNumber=0;
 	}
 	
 	
 	//takes the point that was clicked on, and parses and processes the input
 	public void parseInput(Point thePoint) {
-		// TODO Auto-generated method stub
 		Piece thePiece = this.chosenPiece;
 		boolean moveWorked=false;
 		if(thePiece==null)//no piece is currently chosen. Attempt to choose the piece selected
@@ -107,9 +105,11 @@ public class Game {
 		return canMoveOutOfCheck()||canKillAllAttackingEnemies(piecesAttacking)||canBlockAttack(piecesAttacking);
 	}
 	
-	
+	/* @Pre: Called by canGetOutOfCheck()
+	 * @Post: No changes
+	 * @Return: Whether or not the attacks on the King can be blocked
+	 */
 	private boolean canBlockAttack(ArrayList<Piece> piecesAttacking) {
-		// TODO Auto-generated method stub
 		if(piecesAttacking.size()>1)
 		{
 			return false;//can't block two different paths
@@ -143,9 +143,11 @@ public class Game {
 		
 	}
 	
-	//returns the point which has vector subtraction of point-point2
+	/* @Pre: Called by canGetOutOfCheck()
+	 * @Post: No changes
+	 * @Return: Whether or not all attackingEnemies can be killed next turn
+	 */
 	private boolean canKillAllAttackingEnemies(ArrayList<Piece> piecesAttackingKing) {
-		// TODO Auto-generated method stub
 		if(piecesAttackingKing.size()>1)
 		{
 			return false;//can't kill two different pieces in one turn
@@ -170,6 +172,10 @@ public class Game {
 	
 	}
 	
+	/* @Pre: None
+	 * @Post: No changes
+	 * @Return: The king of the player that is up
+	 */
 	private King getCurrentKing() {
 		// TODO Auto-generated method stub
 		if(isWhitesTurn())
@@ -181,6 +187,10 @@ public class Game {
 		}
 	}
 
+	/* @Pre: None
+	 * @Post: No changes
+	 * @Return: Returns all pieces of the given color that can attack the given point
+	 */
 	ArrayList<Piece> piecesThatCanAttack(Point p, boolean color)
 	{
 		ArrayList<Piece> thePieces =myBoard.getPieces(color);
@@ -199,12 +209,20 @@ public class Game {
 
 	}
 	
-	
+	/* @Pre: None
+	 * @Post: No changes
+	 * @Return: An arraylist of all enemy pieces that can attack the given point
+	 */
 	ArrayList<Piece> enemyPiecesThatCanAttack(Point p)
 	{
 		return  piecesThatCanAttack(p,!isWhitesTurn());
 		
 	}
+
+	/* @Pre: Called by canGetOutOfCheck()
+	 * @Post: No changes
+	 * @Return: Whether or not the king can safely move out of check
+	 */
 	private boolean canMoveOutOfCheck() {
 		King theKing =this.getCurrentKing();
 		for(Point p :theKing.possibleMoves())//if any of them wouldn't place the king in check, it works
@@ -415,7 +433,8 @@ public class Game {
 		}
 		return false;
 	}
-	//checks whether or not castling is possible, and if it is, then add the possible moves
+	
+ 	//checks whether or not castling is possible, and if it is, then add the possible moves
 	private void checkIfCanCastle() {
 		//if it is blacks turn and black king has moved, or vice versa, can't castle
 		if((myBoard.getBlackKing().hasMoved()&&!whitesTurn)||(myBoard.getWhiteKing().hasMoved()&&whitesTurn))
@@ -454,6 +473,7 @@ public class Game {
 		
 		
 	}
+	
 	/* Pre: The rook in the direction "direction", has not moved, and the king has not moved. The king is currently selected
 	 * Post: No changes
 	 * Return: Whether or not the chosen king can castle in the given direction
@@ -541,7 +561,6 @@ public class Game {
 		return false;
 	}
 	
-	
 	/* @Pre: None
 	 * @Post: no changes
 	 * @Return: whether or not this point is under attack by an enemy pawn
@@ -575,6 +594,7 @@ public class Game {
 		}
 		return false;
 	}
+
 	/* @Pre: None
 	 * @Post: no changes
 	 * @Return: whether or not this point is under attack by an enemy rook or queen (by line) 
@@ -616,6 +636,7 @@ public class Game {
 		}
 		return false;//nothing diagonal could attack, so return false
 	}
+
 	/* @Pre: None
 	 * @Post: no changes
 	 * @Return: whether or not this point is under attack by an enemy knight
@@ -738,6 +759,7 @@ public class Game {
 		}
 			
 	}
+
 	/* @Pre: Called by Game.movePiece(Point) when a castling move is made
 	 * @Post: The appropriate rook is moved to the point that the king jumped over
 	 * @Return:
@@ -765,12 +787,12 @@ public class Game {
 		}
 		
 	}
-	public Piece getPiece(Point p)
-	{
-		return myBoard.getPiece(p);
-	}
 
 
+	/* @Pre: A pawn has reached the other side of the board
+	 * @Post: Queries the user for what type to upgrade the pawn to, and does so
+	 * @Return: None
+	 */
 	public void upgradePawn(Piece thePiece) {
 		Object[] possibilities = {"Queen", "Knight", "Rook", "Bishop"};
 		Object answer =null;
@@ -797,6 +819,11 @@ public class Game {
 		
 	}
 	
+	public Piece getPiece(Point p)
+	{
+		return myBoard.getPiece(p);
+	}
+	
 	public  String toString()
 	{
 		return myBoard.toString();
@@ -821,6 +848,10 @@ public class Game {
 		return myBoard.getPieces(this.isWhitesTurn());
 	}
 
+	public ArrayList<Piece> getPieces(boolean color)
+	{
+		return myBoard.getPieces(color);
+	}
 	
 	private static Point getDistance(Point point, Point point2) {
 		// TODO Auto-generated method stub
@@ -870,25 +901,3 @@ public class Game {
 
 }
 
-class Move
-{
-	private Point previousLocation;
-	private Point currentLocation;
-	public Move(Point previousLocation, Point thePoint) {
-		// TODO Auto-generated constructor stub
-		this.previousLocation=previousLocation;
-		this.currentLocation=thePoint;
-	}
-	
-	public Point getPreviousLocation()
-	{
-		return previousLocation;
-	}
-	
-	public Point getCurrentLocation()
-	{
-		return currentLocation;
-	}
-	
-	
-}

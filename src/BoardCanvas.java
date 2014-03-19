@@ -193,4 +193,9 @@ public class BoardCanvas extends Canvas implements MouseListener {
 	{
 		return myGame.toString();
 	}
+
+	public Game getGame() {
+		// TODO Auto-generated method stub
+		return myGame;
+	}
 }

@@ -1,12 +1,14 @@
 package com.DanAnderson.Chess;
 
 import java.awt.Point;
+import java.util.ArrayList;
 
 public abstract class AI {
 	protected boolean myColor;
 	protected Game myGame;
 	public final static int RANDOM =1;
 	public final static int RANDOM_AGGRESSIVE=2;
+	public final static int BAD_THINKER=3;
 	
 	public final int QUEEN=0;
 	public final int KNIGHT=1;
@@ -37,6 +39,13 @@ public abstract class AI {
 		}
 	}
 	
+
+	private  ArrayList<Piece> getMyPieces()
+	{
+		return myGame.getPieces(myColor);
+	}
+
+	
 	/* @Pre: It is the turn of this AI
 	 * @Post: No changes
 	 * @Return: The ideal move, as determined by the AI
@@ -58,6 +67,9 @@ public abstract class AI {
 		{
 			AI answer = new RandomAggressive(game,color);
 			return answer;
+		}else if(AItype==AI.BAD_THINKER)
+		{
+			return new TreeAI(game, color, 1);
 		}else
 		{
 			return null;

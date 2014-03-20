@@ -81,7 +81,7 @@ public class ChessFrame extends JFrame {
 	
 	private int promptForInput(String string) {
 		// TODO Auto-generated method stub
-		Object[] possibilities = {"Human Controlled", "AI-random", "AI-random aggressive"};
+		Object[] possibilities = {"Human Controlled", "AI-random", "AI-random aggressive", "Short term thinker"};
 		Object answer =null;
 		while(answer ==null)
 		{

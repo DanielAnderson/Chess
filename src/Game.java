@@ -2,6 +2,7 @@ package com.DanAnderson.Chess;
 
 import java.awt.Point;
 import java.util.ArrayList;
+
 import javax.swing.JOptionPane;
 
 class Game {
@@ -153,6 +154,34 @@ class Game {
 
 		}
 	}
+	
+	
+	/* @Pre: None
+	 * @Post: No changes
+	 * @Return: List of all legal moves
+	 */
+	public ArrayList<Move> getMyLegalMoves()
+	{
+		ArrayList<Piece> myPieces = this.getPieces(this.isWhitesTurn());
+		ArrayList<Move> answer = new ArrayList<Move>(myPieces.size()*3);
+
+		this.deselectPiece();
+		for(Piece p : myPieces)
+		{
+			this.parseInput(p.myLocation);//select the current piece
+			ArrayList<Point> possibleEndPoints = this.possibleMoves;
+			for(Point thePoint : possibleEndPoints)
+			{
+				if(!this.wouldBeInCheck(thePoint))
+				{
+					answer.add(new Move(p.myLocation, thePoint));
+				}
+				
+			}
+		}
+		return answer;
+	}
+
 
 	private boolean moveIfLegal(Point thePoint) {
 		// TODO Auto-generated method stub
@@ -324,24 +353,9 @@ class Game {
 		{
 			return isInCheck();
 		}
-		Board testBoard = new Board(false);
-		boolean theTurn = this.isWhitesTurn();//check if the new board set up puts the currently moving king in check
-		char[] theCharArray = this.toString().toCharArray();
-		theCharArray[whereToMove.x+8*whereToMove.y]=theCharArray[thePieceMoving.myLocation.x+8*thePieceMoving.myLocation.y];//shift the chosen piece to the new potential position
-		theCharArray[thePieceMoving.myLocation.x+8*thePieceMoving.myLocation.y]=" ".charAt(0);//no longer a piece there
-
-		//sets up the board as if the selected piece was moved to point p
-		for(int i = 0 ; i < theCharArray.length;i++)
-		{
-			if(theCharArray[i]!=" ".charAt(0))
-			{
-				Point location = new Point();
-				location.x=i%8;
-				location.y=i/8;
-				Piece.setPieceOnBoard(theCharArray[i], location, testBoard);
-			}
-		}
-		Game testGame = new Game(testBoard,theTurn);
+		
+		
+		Game testGame = Game.createGame(this, new Move(thePieceMoving.myLocation,whereToMove));
 		return testGame.isInCheck();
 
 	}
@@ -1046,6 +1060,31 @@ class Game {
 			this.displayTieMessage();
 		}
 	}
+
+	public static Game createGame(Game myGame, Move m) {
+		// TODO Auto-generated method stub
+		Board testBoard = new Board(false);
+		Piece thePieceMoving = myGame.getPiece(m.getPreviousLocation());
+		Point whereToMove=m.getCurrentLocation();
+		boolean theTurn = myGame.isWhitesTurn();//check if the new board set up puts the currently moving king in check
+		char[] theCharArray = myGame.toString().toCharArray();
+		theCharArray[whereToMove.x+8*whereToMove.y]=theCharArray[thePieceMoving.myLocation.x+8*thePieceMoving.myLocation.y];//shift the chosen piece to the new potential position
+		theCharArray[thePieceMoving.myLocation.x+8*thePieceMoving.myLocation.y]=" ".charAt(0);//no longer a piece there
+
+		//sets up the board as if the selected piece was moved to point p
+		for(int i = 0 ; i < theCharArray.length;i++)
+		{
+			if(theCharArray[i]!=" ".charAt(0))
+			{
+				Point location = new Point();
+				location.x=i%8;
+				location.y=i/8;
+				Piece.setPieceOnBoard(theCharArray[i], location, testBoard);
+			}
+		}
+		return new Game(testBoard, theTurn);
+	}
+	
 
 }
 

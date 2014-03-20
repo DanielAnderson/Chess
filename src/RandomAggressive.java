@@ -11,7 +11,7 @@ public class RandomAggressive extends RandomAI {
 	
 	public Move chooseMove()
 	{
-		ArrayList<Move> allMoves = super.getMyLegalMoves();
+		ArrayList<Move> allMoves = myGame.getMyLegalMoves();
 		ArrayList<Move> attackingMoves = this.getAttackingMoves(allMoves);
 		if(attackingMoves.size()!=0)
 		{

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
+import javax.swing.JOptionPane;
 
 public class BoardCanvas extends Canvas implements MouseListener {
 
@@ -29,10 +30,6 @@ public class BoardCanvas extends Canvas implements MouseListener {
 	
 	private HashMap<String, BufferedImage> stringToImage;
 	
-//	public static void main (String args[])
-//	{
-//		BoardCanvas theBoardCanvas=new BoardCanvas(50);
-//	}
 	
 	/* Pre: None
 	 * Post: No changes
@@ -52,8 +49,7 @@ public class BoardCanvas extends Canvas implements MouseListener {
 		
 		stringToImage = new HashMap<String,BufferedImage>();
 		myCellSize=sizeOfCell;
-
-		myGame = new Game();
+		myGame=createGame();
 		this.addMouseListener(this);
 
 		setupImages();
@@ -62,12 +58,32 @@ public class BoardCanvas extends Canvas implements MouseListener {
 		offscreen=new BufferedImage(myWidth,myHeight, 4);
 		bufferGraphics=offscreen.getGraphics();
 
-//		JFrame theFrame = new JFrame();
-//
-//		theFrame.add(this);
-//		theFrame.pack();
-//		theFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//		theFrame.setVisible(true);
+	}
+
+	private Game createGame() {
+		// TODO Auto-generated method stub
+		int whiteControlled=promptForInput("white");
+		int blackControlled=promptForInput("black");
+		return new Game(whiteControlled,blackControlled);
+		
+	}
+
+	private int promptForInput(String string) {
+		// TODO Auto-generated method stub
+		Object[] possibilities = {"Human Controlled", "AI-random"};
+		Object answer =null;
+		while(answer ==null)
+		{
+			answer = JOptionPane.showInputDialog(null, "What would you like the "+string+" player to be controlled by?", null, JOptionPane.PLAIN_MESSAGE, null, possibilities, possibilities[0]);
+		}
+		
+		if(answer ==possibilities[0])
+		{
+			return 0;
+		}else
+		{
+			return 1;
+		}
 
 	}
 

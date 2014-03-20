@@ -6,94 +6,172 @@ import java.util.jar.JarException;
 
 import javax.swing.JOptionPane;
 
-public class Game {
+ class Game {
 
 	private Board myBoard;
 	private boolean whitesTurn;
-	public Piece chosenPiece;
-	public ArrayList<Point> possibleMoves;
-	public final boolean LEFT =false;
-	public final boolean RIGHT = true;
+	 Piece chosenPiece;
+	 ArrayList<Point> possibleMoves;
+	 final boolean LEFT =false;
+	 final boolean RIGHT = true;
 	private Move lastMove;
-	public static final boolean WHITE = true;
-	public static final boolean BLACK = false;
+	 static final boolean WHITE = true;
+	 static final boolean BLACK = false;
+	 static final int HUMAN_CONTROLLED =0 ;
+	 static final int RANDOM_AI = 1;
 	
-	public Game()
+	private int whiteController;
+	private int blackController;
+	private boolean gameOver=false;
+	private int myTurnNumber;
+	
+	/* @Pre: None
+	 * @Post: None
+	 * @Return: creates a new game with the default setup and 2 human players
+	 */
+	 Game()
 	{
-		boolean isDefaultSetup=true;
-		myBoard = new Board(isDefaultSetup);
-		whitesTurn=true;
+		this(0,0);
 	}
-	public Game(Board theBoard, boolean whitesTurn)
+	
+	/* @Pre: None
+	 * @Post: None
+	 * @Return: A game with a specific board, and with the specific players turn
+	 */
+	 Game(Board theBoard, boolean whitesTurn)
 	{
+		setWhiteController(0) ; 
+		setBlackController(0) ; 
 		myBoard=theBoard;
 		this.whitesTurn=whitesTurn;
+		
 	}
 	
+	/* @Pre: None
+	 * @Post: None
+	 * @Return: A game with the default board, and the types of players given
+	 */
+	 Game(int whitePlayerType, int blackPlayerType)
+	{
+		
+		setWhiteController(whitePlayerType);
+		setBlackController(blackPlayerType);
+		boolean isDefaultSetup=true;
+		myBoard = new Board(isDefaultSetup);
+		whitesTurn = true;
+	}
 	
 	//takes the point that was clicked on, and parses and processes the input
-	public void parseInput(Point thePoint) {
-		Piece thePiece = this.chosenPiece;
-		boolean moveWorked=false;
-		if(thePiece==null)//no piece is currently chosen. Attempt to choose the piece selected
-		{
-			this.selectPiece(thePoint);
-
-		}else if(this.possibleMoves.contains(thePoint))//thePiece is not null, and the selected piece can go to the cell clicked
-		{			
-			if(!this.wouldBeInCheck(thePoint))//if the selected move wouldn't move it into check, then lets move it
-			{
-				Point previousLocation =thePiece.myLocation;
-				 moveWorked=this.movePiece(thePoint);
-				
-				//if the move worked, then that was the previous move
-				if(moveWorked)
-				{
-					thePiece.wasMoved();
-					lastMove = new Move(previousLocation,thePoint);
-				}
-				//check to possibly upgrade the pawn
-				if(thePiece instanceof Pawn)
-				{
-					
-					if(thePiece.getY()==7||thePiece.getY()==0)//then the piece is at the end of the board and needs to be updated
-					{
-						this.upgradePawn(thePiece);
-					}
-				}
-
-			}else
-			{
-				JOptionPane.showMessageDialog(null, "This move would put you in check, please move otherwise.", "Illegal move.", 0);
-			}
-		}else//the selected move isn't possible, we want to deselect the piece and reset the possibleMoves
-		{
-			this.selectPiece(new Point(100,100));//way out of the board, will set both as null
-		}
+	 void parseInput(Point thePoint) {
+		 if(gameOver)
+		 {
+			 return;//can't do anything with input if it's game over
+		 }
 		
-		if(moveWorked&&this.isInCheck())
-		{
-			String movingPlayer;
-			String otherPlayer;
-			if(isWhitesTurn())
+		 Piece thePiece = this.chosenPiece;
+		
+		 boolean moveWorked=false;
+		 
+		 if(thePiece==null)//no piece is currently chosen. Attempt to choose the piece selected
+		 {
+		 	 this.selectPiece(thePoint);
+
+		 }
+		 else if(this.possibleMoves.contains(thePoint))//thePiece is not null, and the selected piece can go to the cell clicked
+		 {	
+			 moveWorked=moveIfLegal(thePoint);
+			 if(moveWorked)
+			 {
+				 checkUpgradePawn(thePiece);
+			 }else
+			 {
+				 displayIllegalMoveMessage();
+			 }
+			 
+		 }else//try to select the piece
+		 {
+			 this.selectPiece(thePoint);
+		 }
+		 if(moveWorked&&this.isInCheck())
+		 {
+			 if(canGetOutOfCheck())
+			 {
+				 displayCheckMessage();
+			 }else
+			 {
+				 displayGameOverMessage();
+			 }
+
+			 
+		 }
+		 if(moveWorked)
+		 {
+			this.myTurnNumber++;
+		 }
+	}
+ 
+
+ 
+ 	private void displayGameOverMessage() {
+		// TODO Auto-generated method stub
+		gameOver=true;
+		
+		JOptionPane.showMessageDialog(null, "Congrats, "+ "player, you won!");
+
+	}
+
+	private void displayCheckMessage() {
+		// TODO Auto-generated method stub
+		 String movingPlayer;
+		 String otherPlayer;
+		 if(isWhitesTurn())
+		 {
+			 movingPlayer="Black ";
+			 otherPlayer="White ";
+		 }else
+		 {
+			 movingPlayer="White ";
+			 otherPlayer="Black ";
+		 }
+		 JOptionPane.showMessageDialog(null, otherPlayer+" player, you are now in check.", "In check", 0);
+
+
+	}
+
+	private void displayIllegalMoveMessage() {
+ 		JOptionPane.showMessageDialog(null, "This move would put you in check, please move otherwise.", "Illegal move.", 0);
+	}
+
+	private void checkUpgradePawn(Piece thePiece)
+ 	{
+ 		if(thePiece instanceof Pawn)
+ 		{
+				
+			if(thePiece.getY()==7||thePiece.getY()==0)//then the piece is at the end of the board and needs to be updated
 			{
-				movingPlayer="Black ";
-				otherPlayer="White ";
-			}else
-			{
-				movingPlayer="White ";
-				otherPlayer="Black ";
+				this.upgradePawn(thePiece);
 			}
 
-			if(canGetOutOfCheck())
-			{
-				JOptionPane.showMessageDialog(null, otherPlayer+" player, you are now in check.", "In check", 0);
-			}else//can't get out of check, game is over with other team winning
-			{
-				JOptionPane.showMessageDialog(null, "Congrats, "+movingPlayer.toLowerCase()+ "player, you won!");
-			}
-		}
-
+ 		}
+ 	}
+ 	
+	private boolean moveIfLegal(Point thePoint) {
+		// TODO Auto-generated method stub
+		 boolean moveWorked=false;
+		 if(!this.wouldBeInCheck(thePoint))//if the selected move wouldn't move it into check, then lets move it
+		 {
+			 Piece pieceTryingToMove = chosenPiece;
+			 Point previousLocation =chosenPiece.myLocation;
+			 moveWorked=this.movePiece(thePoint);
+			
+			 //if the move worked, then that was the previous move
+			 if(moveWorked)
+			 {
+				 pieceTryingToMove.wasMoved();
+				 lastMove = new Move(previousLocation,thePoint);
+			 }
+		 }
+		 return moveWorked;
 	}
 
 	/* @Pre: Called only if the player who just got their turn is in check, called by parseInput()
@@ -274,7 +352,7 @@ public class Game {
 	 * 		    Note: this method will return the same value even if the move isn't otherwise legal.
 	 *			Note: do not replace this with a call to "isUnderAttack(Point p)" because moving a piece could change that
 	 */
-	private boolean wouldBeInCheck(Point p)
+	 boolean wouldBeInCheck(Point p)
 	{
 		return wouldBeInCheck(chosenPiece,p);
 	}
@@ -304,7 +382,7 @@ public class Game {
 	 *       Otherwise, chosenPiece is set to null, and possibleMoves is set to null
 	 * Return: None
 	 */
-	public void selectPiece(Point p)
+	private void selectPiece(Point p)
 	{
 		chosenPiece=null;
 		possibleMoves=null;
@@ -719,7 +797,7 @@ public class Game {
 	 * @Post: move the selected piece to the selected location if it is a valid move
 	 * @Return: whether the piece actually moved
 	 */
-	public boolean movePiece(Point p)
+	private boolean movePiece(Point p)
 	{
 		if(possibleMoves==null)
 		{
@@ -793,7 +871,7 @@ public class Game {
 	 * @Post: Queries the user for what type to upgrade the pawn to, and does so
 	 * @Return: None
 	 */
-	public void upgradePawn(Piece thePiece) {
+	private void upgradePawn(Piece thePiece) {
 		Object[] possibilities = {"Queen", "Knight", "Rook", "Bishop"};
 		Object answer =null;
 		while(answer ==null)
@@ -819,36 +897,28 @@ public class Game {
 		
 	}
 	
-	public Piece getPiece(Point p)
+	 Piece getPiece(Point p)
 	{
 		return myBoard.getPiece(p);
 	}
 	
-	public  String toString()
+	public String toString()
 	{
 		return myBoard.toString();
 	}
 	
-	public Board getBoard()
+	 Board getBoard()
 	{
 		return myBoard;
 	}
 	
-	private boolean isWhitesTurn() {
+	public boolean isWhitesTurn() {
 		// TODO Auto-generated method stub
 		return whitesTurn;
 	}
 	
-	private ArrayList<Piece> getEnemyPieces() {
-		// TODO Auto-generated method stub
-		return myBoard.getPieces(!this.isWhitesTurn());
-	}
-	private ArrayList<Piece> getMyPieces() {
-		// TODO Auto-generated method stub
-		return myBoard.getPieces(this.isWhitesTurn());
-	}
 
-	public ArrayList<Piece> getPieces(boolean color)
+	 ArrayList<Piece> getPieces(boolean color)
 	{
 		return myBoard.getPieces(color);
 	}
@@ -862,7 +932,7 @@ public class Game {
 	 * @Post: None
 	 * @Return: An ArrayList of all points which lie between point and point2
 	 */
-	public static ArrayList<Point> getPointsBetween(Point point, Point point2) {
+	 static ArrayList<Point> getPointsBetween(Point point, Point point2) {
 		// TODO Auto-generated method stub
 		ArrayList<Point> answer= new ArrayList<Point>();
 		Point difference = Game.getDistance(point, point2);
@@ -897,6 +967,44 @@ public class Game {
 		}
 		return answer;
 		
+	}
+
+	 void deselectPiece() {
+		this.selectPiece(new Point(100,100));//outside of the board, will deselect piece
+		
+	}
+
+	public boolean isGameOver() {
+		// TODO Auto-generated method stub
+		return gameOver;
+	}
+
+	public int getWhiteController() {
+		return whiteController;
+	}
+
+	public void setWhiteController(int whiteController) {
+		this.whiteController = whiteController;
+	}
+
+	public int getBlackController() {
+		return blackController;
+	}
+
+	public void setBlackController(int blackController) {
+		this.blackController = blackController;
+	}
+
+	public int getTurnNumber() {
+		// TODO Auto-generated method stub
+		return myTurnNumber;
+	}
+
+	public void displayTieMessage() {
+		// TODO Auto-generated method stub
+		gameOver=true;
+		JOptionPane.showMessageDialog(null, "Tie game.");
+
 	}
 
 }

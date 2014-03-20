@@ -4,41 +4,48 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class RandomAI {
-	Game myGame;
-	private boolean myColor;
+public class RandomAI extends AI{
 	
 	public RandomAI(Game theGame, boolean color)
 	{
-		myGame = theGame;
-		myColor=color;
+		super(theGame,color);
 	}
+	public void makeMove()
+	{
+		if(myGame.isGameOver())
+		{
+			return;
+		}
+		ArrayList<Move> legalMoves = getMyLegalMoves();
+		System.out.println(legalMoves==null);
+		Move theMove = getRandom(legalMoves);
+		myGame.parseInput(theMove.getPreviousLocation());
+		myGame.parseInput((theMove.getCurrentLocation()));
+	}
+
 	
-	public ArrayList<Move> getMyLegalMoves()
+	private ArrayList<Move> getMyLegalMoves()
 	{
 		ArrayList<Piece> myPieces =  getMyPieces();
 		ArrayList<Move> answer = new ArrayList<Move>(myPieces.size()*3);
 
-		
+		myGame.deselectPiece();
 		for(Piece p : myPieces)
 		{
-			myGame.selectPiece(p.myLocation);
+			myGame.parseInput(p.myLocation);//select the current piece
 			ArrayList<Point> possibleEndPoints = myGame.possibleMoves;
 			for(Point thePoint : possibleEndPoints)
 			{
-				answer.add(new Move(p.myLocation, thePoint));
+				if(!myGame.wouldBeInCheck(thePoint))
+				{
+					answer.add(new Move(p.myLocation, thePoint));
+				}
+				
 			}
 		}
 		return answer;
 	}
 	
-	public void makeMove()
-	{
-		ArrayList<Move> legalMoves = getMyLegalMoves();
-		Move theMove = getRandom(legalMoves);
-		myGame.selectPiece(theMove.getPreviousLocation());
-		myGame.movePiece((theMove.getCurrentLocation()));
-	}
 	
 	private Move getRandom(ArrayList<Move> legalMoves) {
 		// TODO Auto-generated method stub

@@ -10,21 +10,21 @@ public class RandomAI extends AI{
 	{
 		super(theGame,color);
 	}
-	public void makeMove()
+	public Move chooseMove()
 	{
 		if(myGame.isGameOver())
 		{
-			return;
+			return null;
 		}
 		ArrayList<Move> legalMoves = getMyLegalMoves();
-		System.out.println(legalMoves==null);
 		Move theMove = getRandom(legalMoves);
-		myGame.parseInput(theMove.getPreviousLocation());
-		myGame.parseInput((theMove.getCurrentLocation()));
+		return theMove;
+		
+		
 	}
 
 	
-	private ArrayList<Move> getMyLegalMoves()
+	public ArrayList<Move> getMyLegalMoves()
 	{
 		ArrayList<Piece> myPieces =  getMyPieces();
 		ArrayList<Move> answer = new ArrayList<Move>(myPieces.size()*3);
@@ -47,7 +47,7 @@ public class RandomAI extends AI{
 	}
 	
 	
-	private Move getRandom(ArrayList<Move> legalMoves) {
+	protected Move getRandom(ArrayList<Move> legalMoves) {
 		// TODO Auto-generated method stub
 		Random r = new Random();
 		return legalMoves.get(r.nextInt(legalMoves.size()));
@@ -56,6 +56,11 @@ public class RandomAI extends AI{
 	private  ArrayList<Piece> getMyPieces()
 	{
 		return myGame.getPieces(myColor);
+	}
+
+	public int chooseUpgrade(Point p) {
+		// TODO Auto-generated method stub
+		return new Random().nextInt(4);
 	}
 }
 

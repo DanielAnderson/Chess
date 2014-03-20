@@ -2,176 +2,175 @@ package com.DanAnderson.Chess;
 
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.jar.JarException;
-
 import javax.swing.JOptionPane;
 
- class Game {
+class Game {
 
 	private Board myBoard;
 	private boolean whitesTurn;
-	 Piece chosenPiece;
-	 ArrayList<Point> possibleMoves;
-	 final boolean LEFT =false;
-	 final boolean RIGHT = true;
+	Piece chosenPiece;
+	ArrayList<Point> possibleMoves;
+	final boolean LEFT =false;
+	final boolean RIGHT = true;
 	private Move lastMove;
-	 static final boolean WHITE = true;
-	 static final boolean BLACK = false;
-	 static final int HUMAN_CONTROLLED =0 ;
-	 static final int RANDOM_AI = 1;
-	
+	static final boolean WHITE = true;
+	static final boolean BLACK = false;
+	static final int HUMAN_CONTROLLED =0 ;
+	static final int RANDOM_AI = 1;
+
 	private int whiteController;
 	private int blackController;
 	private boolean gameOver=false;
 	private int myTurnNumber;
-	
+	private ChessFrame myFrame;
+
+
 	/* @Pre: None
 	 * @Post: None
 	 * @Return: creates a new game with the default setup and 2 human players
 	 */
-	 Game()
+	Game(ChessFrame theFrame)
 	{
-		this(0,0);
+		this(0,0,theFrame);
 	}
-	
+
 	/* @Pre: None
 	 * @Post: None
 	 * @Return: A game with a specific board, and with the specific players turn
 	 */
-	 Game(Board theBoard, boolean whitesTurn)
+	Game(Board theBoard, boolean whitesTurn)
 	{
 		setWhiteController(0) ; 
 		setBlackController(0) ; 
 		myBoard=theBoard;
 		this.whitesTurn=whitesTurn;
-		
+
 	}
-	
+
 	/* @Pre: None
 	 * @Post: None
 	 * @Return: A game with the default board, and the types of players given
 	 */
-	 Game(int whitePlayerType, int blackPlayerType)
+	Game(int whitePlayerType, int blackPlayerType, ChessFrame theFrame)
 	{
-		
+		myFrame=theFrame;
 		setWhiteController(whitePlayerType);
 		setBlackController(blackPlayerType);
 		boolean isDefaultSetup=true;
 		myBoard = new Board(isDefaultSetup);
 		whitesTurn = true;
 	}
-	
+
 	//takes the point that was clicked on, and parses and processes the input
-	 void parseInput(Point thePoint) {
-		 if(gameOver)
-		 {
-			 return;//can't do anything with input if it's game over
-		 }
-		
-		 Piece thePiece = this.chosenPiece;
-		
-		 boolean moveWorked=false;
-		 
-		 if(thePiece==null)//no piece is currently chosen. Attempt to choose the piece selected
-		 {
-		 	 this.selectPiece(thePoint);
+	void parseInput(Point thePoint) {
+		if(gameOver)
+		{
+			return;//can't do anything with input if it's game over
+		}
 
-		 }
-		 else if(this.possibleMoves.contains(thePoint))//thePiece is not null, and the selected piece can go to the cell clicked
-		 {	
-			 moveWorked=moveIfLegal(thePoint);
-			 if(moveWorked)
-			 {
-				 checkUpgradePawn(thePiece);
-			 }else
-			 {
-				 displayIllegalMoveMessage();
-			 }
-			 
-		 }else//try to select the piece
-		 {
-			 this.selectPiece(thePoint);
-		 }
-		 if(moveWorked&&this.isInCheck())
-		 {
-			 if(canGetOutOfCheck())
-			 {
-				 displayCheckMessage();
-			 }else
-			 {
-				 displayGameOverMessage();
-			 }
+		Piece thePiece = this.chosenPiece;
 
-			 
-		 }
-		 if(moveWorked)
-		 {
+		boolean moveWorked=false;
+
+		if(thePiece==null)//no piece is currently chosen. Attempt to choose the piece selected
+		{
+			this.selectPiece(thePoint);
+		}
+		else if(this.possibleMoves.contains(thePoint))//thePiece is not null, and the selected piece can go to the cell clicked
+		{	
+			moveWorked=moveIfLegal(thePoint);
+			if(moveWorked)
+			{
+				checkUpgradePawn(thePiece);
+			}else
+			{
+				displayIllegalMoveMessage();
+			}
+
+		}
+		else//try to select the piece
+		{
+			this.selectPiece(thePoint);
+		}
+
+		if(moveWorked&&this.isInCheck())
+		{
+			if(canGetOutOfCheck())
+			{
+				displayCheckMessage();
+			}else
+			{
+				displayGameOverMessage();
+			}
+
+
+		}
+		if(moveWorked)
+		{
 			this.myTurnNumber++;
-		 }
+			whitesTurn=!whitesTurn;
+		}
 	}
- 
 
- 
- 	private void displayGameOverMessage() {
+
+
+	private void displayGameOverMessage() {
 		// TODO Auto-generated method stub
 		gameOver=true;
-		
+
 		JOptionPane.showMessageDialog(null, "Congrats, "+ "player, you won!");
 
 	}
 
 	private void displayCheckMessage() {
 		// TODO Auto-generated method stub
-		 String movingPlayer;
-		 String otherPlayer;
-		 if(isWhitesTurn())
-		 {
-			 movingPlayer="Black ";
-			 otherPlayer="White ";
-		 }else
-		 {
-			 movingPlayer="White ";
-			 otherPlayer="Black ";
-		 }
-		 JOptionPane.showMessageDialog(null, otherPlayer+" player, you are now in check.", "In check", 0);
+		String otherPlayer;
+		if(isWhitesTurn())
+		{
+			otherPlayer="White ";
+		}else
+		{
+			otherPlayer="Black ";
+		}
+		JOptionPane.showMessageDialog(null, otherPlayer+" player, you are now in check.", "In check", 0);
 
 
 	}
 
 	private void displayIllegalMoveMessage() {
- 		JOptionPane.showMessageDialog(null, "This move would put you in check, please move otherwise.", "Illegal move.", 0);
+		JOptionPane.showMessageDialog(null, "This move would put you in check, please move otherwise.", "Illegal move.", 0);
 	}
 
 	private void checkUpgradePawn(Piece thePiece)
- 	{
- 		if(thePiece instanceof Pawn)
- 		{
-				
+	{
+		if(thePiece instanceof Pawn)
+		{
+
 			if(thePiece.getY()==7||thePiece.getY()==0)//then the piece is at the end of the board and needs to be updated
 			{
 				this.upgradePawn(thePiece);
 			}
 
- 		}
- 	}
- 	
+		}
+	}
+
 	private boolean moveIfLegal(Point thePoint) {
 		// TODO Auto-generated method stub
-		 boolean moveWorked=false;
-		 if(!this.wouldBeInCheck(thePoint))//if the selected move wouldn't move it into check, then lets move it
-		 {
-			 Piece pieceTryingToMove = chosenPiece;
-			 Point previousLocation =chosenPiece.myLocation;
-			 moveWorked=this.movePiece(thePoint);
-			
-			 //if the move worked, then that was the previous move
-			 if(moveWorked)
-			 {
-				 pieceTryingToMove.wasMoved();
-				 lastMove = new Move(previousLocation,thePoint);
-			 }
-		 }
-		 return moveWorked;
+		boolean moveWorked=false;
+		if(!this.wouldBeInCheck(thePoint))//if the selected move wouldn't move it into check, then lets move it
+		{
+			Piece pieceTryingToMove = chosenPiece;
+			Point previousLocation =chosenPiece.myLocation;
+			moveWorked=this.movePiece(thePoint);
+
+			//if the move worked, then that was the previous move
+			if(moveWorked)
+			{
+				pieceTryingToMove.wasMoved();
+				lastMove = new Move(previousLocation,thePoint);
+			}
+		}
+		return moveWorked;
 	}
 
 	/* @Pre: Called only if the player who just got their turn is in check, called by parseInput()
@@ -182,7 +181,7 @@ import javax.swing.JOptionPane;
 		ArrayList<Piece> piecesAttacking =enemyPiecesThatCanAttack(getCurrentKing().getPoint());
 		return canMoveOutOfCheck()||canKillAllAttackingEnemies(piecesAttacking)||canBlockAttack(piecesAttacking);
 	}
-	
+
 	/* @Pre: Called by canGetOutOfCheck()
 	 * @Post: No changes
 	 * @Return: Whether or not the attacks on the King can be blocked
@@ -193,15 +192,15 @@ import javax.swing.JOptionPane;
 			return false;//can't block two different paths
 		}
 		Piece pieceAttacking = piecesAttacking.get(0);
-		
+
 		if(pieceAttacking instanceof Knight || pieceAttacking instanceof Pawn)
 		{
 			return false;//can't block knights (jump) or pawns (right next to the king)
 		}
-		
+
 		//gets all points between the king and the king attacking it
 		ArrayList<Point> pointsBetween = Game.getPointsBetween(getCurrentKing().getPoint(),pieceAttacking.getPoint());
-		
+
 		for(Point p : pointsBetween)
 		{
 			ArrayList<Piece> blockingPieces=piecesThatCanAttack(p,isWhitesTurn());
@@ -217,10 +216,10 @@ import javax.swing.JOptionPane;
 			}
 		}
 		return false;
-		
-		
+
+
 	}
-	
+
 	/* @Pre: Called by canGetOutOfCheck()
 	 * @Post: No changes
 	 * @Return: Whether or not all attackingEnemies can be killed next turn
@@ -230,26 +229,26 @@ import javax.swing.JOptionPane;
 		{
 			return false;//can't kill two different pieces in one turn
 		}
-		
+
 		ArrayList<Piece> myPieces=myBoard.getPieces(isWhitesTurn());
 		for(Piece p : myPieces)
 		{
 			try{
-			if(p.possibleMoves().contains(piecesAttackingKing.get(0).getPoint()))//can kill attacking piece
-			{
-				if(!this.wouldBeInCheck(p, piecesAttackingKing.get(0).getPoint())){//wouldn't be in check if we killed like this
-					return true;
-				}
-			}}
+				if(p.possibleMoves().contains(piecesAttackingKing.get(0).getPoint()))//can kill attacking piece
+				{
+					if(!this.wouldBeInCheck(p, piecesAttackingKing.get(0).getPoint())){//wouldn't be in check if we killed like this
+						return true;
+					}
+				}}
 			catch(java.lang.IndexOutOfBoundsException exception)
 			{
 				exception.printStackTrace();
 			}
 		}
 		return false;
-	
+
 	}
-	
+
 	/* @Pre: None
 	 * @Post: No changes
 	 * @Return: The king of the player that is up
@@ -286,7 +285,7 @@ import javax.swing.JOptionPane;
 		return thePieces;
 
 	}
-	
+
 	/* @Pre: None
 	 * @Post: No changes
 	 * @Return: An arraylist of all enemy pieces that can attack the given point
@@ -294,7 +293,7 @@ import javax.swing.JOptionPane;
 	ArrayList<Piece> enemyPiecesThatCanAttack(Point p)
 	{
 		return  piecesThatCanAttack(p,!isWhitesTurn());
-		
+
 	}
 
 	/* @Pre: Called by canGetOutOfCheck()
@@ -312,7 +311,7 @@ import javax.swing.JOptionPane;
 		}
 		return false;
 	}
-	
+
 	/* @Pre: None
 	 * @Post: No changes
 	 * @Return: Whether moving the given piece to the given Point would put the moving team into check
@@ -330,7 +329,7 @@ import javax.swing.JOptionPane;
 		char[] theCharArray = this.toString().toCharArray();
 		theCharArray[whereToMove.x+8*whereToMove.y]=theCharArray[thePieceMoving.myLocation.x+8*thePieceMoving.myLocation.y];//shift the chosen piece to the new potential position
 		theCharArray[thePieceMoving.myLocation.x+8*thePieceMoving.myLocation.y]=" ".charAt(0);//no longer a piece there
-		
+
 		//sets up the board as if the selected piece was moved to point p
 		for(int i = 0 ; i < theCharArray.length;i++)
 		{
@@ -352,11 +351,11 @@ import javax.swing.JOptionPane;
 	 * 		    Note: this method will return the same value even if the move isn't otherwise legal.
 	 *			Note: do not replace this with a call to "isUnderAttack(Point p)" because moving a piece could change that
 	 */
-	 boolean wouldBeInCheck(Point p)
+	boolean wouldBeInCheck(Point p)
 	{
 		return wouldBeInCheck(chosenPiece,p);
 	}
-	
+
 	/* @Pre: None
 	 * @Post: No changes
 	 * @Return: whether or not the king whose move it currently is is in check
@@ -374,9 +373,9 @@ import javax.swing.JOptionPane;
 
 		Point kingLocation = new Point(currentKing.myLocation);
 		return this.isUnderAttack(kingLocation);
-		
+
 	}
-	
+
 	/* Pre: none
 	 * Post: If the piece is a valid choice, then the piece is selected and possibleMoves is set to it's possible moves.
 	 *       Otherwise, chosenPiece is set to null, and possibleMoves is set to null
@@ -386,19 +385,19 @@ import javax.swing.JOptionPane;
 	{
 		chosenPiece=null;
 		possibleMoves=null;
-		
+
 		if(!myBoard.isOnBoard(p))//it isn't on the board
 		{
 			return;//chosenPiece and possible moves should be null
 		}
-		
+
 		Piece thePiece = myBoard.getPiece(p);
-		
+
 		if(thePiece==null)
 		{
 			return;//if the point doesn't have any piece in it, then chosenPiece and possible moves should be null
 		}
-		
+
 		if(thePiece.isWhite==whitesTurn)//the piece chosen was the correct color
 		{
 			chosenPiece=thePiece;
@@ -415,13 +414,13 @@ import javax.swing.JOptionPane;
 				checkIfCanCastle();
 			}
 		}
-		
+
 		//check if en passant is a legal move, and if it is, then add it to the list of possible moves
 		if(thePiece instanceof Pawn)
 		{
 			addPossibleEnPassantMoves(p);
 		}
-		
+
 	}
 	/* @Pre: PossibleMoves!=null
 	 * 		 Called by selectPiece if and only if the move that was selected is a pawn
@@ -432,10 +431,10 @@ import javax.swing.JOptionPane;
 		Point left = new Point(p.x-1,p.y);
 		Point right = new Point(p.x+1,p.y);
 		Piece thePiece = chosenPiece;
-		
+
 		if(myBoard.isOnBoard(left))
 		{
-			
+
 			Piece mightBeAPiece=getPiece(left);
 			if(mightBeAPiece instanceof Pawn && mightBeAPiece.isWhite()!=thePiece.isWhite())
 			{
@@ -449,10 +448,10 @@ import javax.swing.JOptionPane;
 					{
 						dy=-1;
 					}
-					
+
 					possibleMoves.add(new Point(thePiece.getX()+dx,thePiece.getY()+dy));
-					
-					
+
+
 				}
 			}
 		}
@@ -472,23 +471,23 @@ import javax.swing.JOptionPane;
 					{
 						dy=-1;
 					}
-					
+
 					possibleMoves.add(new Point(thePiece.getX()+dx,thePiece.getY()+dy));
 
 				}
 			}
 
 		}
-			
 
-		
+
+
 	}
 
 	/* @Pre: Called by checkIfCanEnPassant, chosenPiece!=null
 	 * @Post: No changes
 	 * @Return: Whether or not the chosen piece can en passant in the current direction
 	 */
- 	private boolean checkIfCanEnPassant(boolean leftOrRight) {
+	private boolean checkIfCanEnPassant(boolean leftOrRight) {
 		if(leftOrRight==RIGHT)
 		{
 			if(lastMove.getCurrentLocation().equals(new Point(chosenPiece.getX()+1,chosenPiece.getY())))
@@ -511,33 +510,33 @@ import javax.swing.JOptionPane;
 		}
 		return false;
 	}
-	
- 	//checks whether or not castling is possible, and if it is, then add the possible moves
+
+	//checks whether or not castling is possible, and if it is, then add the possible moves
 	private void checkIfCanCastle() {
 		//if it is blacks turn and black king has moved, or vice versa, can't castle
 		if((myBoard.getBlackKing().hasMoved()&&!whitesTurn)||(myBoard.getWhiteKing().hasMoved()&&whitesTurn))
 		{
 			return;
 		}
-		
+
 		int yValue = chosenPiece.getY();
 		Piece closeCorner = getPiece(new Point(0,yValue));
 		Piece farCorner = getPiece(new Point(7,yValue));
-		
+
 		//if they arent there, or have moved, or aren't rooks, then can't castle that direction
 		boolean closeRookMoved = closeCorner==null||closeCorner.hasMoved()||!(closeCorner instanceof Rook);
 		boolean farRookMoved=farCorner==null||farCorner.hasMoved()||!(farCorner instanceof Rook);
-		
+
 		if(!closeRookMoved)
 		{
 			if(canCastle(LEFT))
 			{
 				possibleMoves.add(new Point(1,yValue));//can castle left
 			}
-			
+
 		}
-		
-		
+
+
 		if(!farRookMoved)
 		{
 			if(canCastle(RIGHT))
@@ -545,13 +544,13 @@ import javax.swing.JOptionPane;
 				possibleMoves.add(new Point(5,yValue));
 			}
 
-			
+
 		}
-		
-		
-		
+
+
+
 	}
-	
+
 	/* Pre: The rook in the direction "direction", has not moved, and the king has not moved. The king is currently selected
 	 * Post: No changes
 	 * Return: Whether or not the chosen king can castle in the given direction
@@ -562,7 +561,7 @@ import javax.swing.JOptionPane;
 		{
 			return false;
 		}
-		
+
 		if(direction==RIGHT)
 		{
 			Point oneRight = new Point(chosenPiece.getX()+1,chosenPiece.getY());
@@ -588,7 +587,7 @@ import javax.swing.JOptionPane;
 		{
 			Point oneLeft = new Point(chosenPiece.getX()-1,chosenPiece.getY());
 			Point twoLeft = new Point(chosenPiece.getX()-2,chosenPiece.getY());
-			
+
 			if(getPiece(oneLeft)!=null||getPiece(twoLeft)!=null)
 			{
 				return false;//if either of them aren't empty, you can't castle
@@ -605,7 +604,7 @@ import javax.swing.JOptionPane;
 		}
 		throw new AssertionError("We shouldn't be able to get here");
 	}
-	
+
 	/* @Pre: None
 	 * @Post: no changes
 	 * @Return: Returns whether or not a current point is under attack by the enemy
@@ -614,7 +613,7 @@ import javax.swing.JOptionPane;
 		// TODO Auto-generated method stub
 		return knightsCanAttack(pointToCheck)||diagonalCanAttack(pointToCheck)||lineCanAttack(pointToCheck)||pawnCanAttack(pointToCheck)||kingCanAttack(pointToCheck);
 	}
-	
+
 	/* @Pre: None
 	 * @Post: no changes
 	 * @Return: whether or not this point is under attack by an enemy king
@@ -631,21 +630,21 @@ import javax.swing.JOptionPane;
 		}
 		int xDistance = Math.abs(pointToCheck.x-enemyKing.getX());
 		int yDistance = Math.abs(pointToCheck.y-enemyKing.getY());
-		
+
 		if(xDistance<=1&&yDistance<=1)
 		{
 			return true;
 		}
 		return false;
 	}
-	
+
 	/* @Pre: None
 	 * @Post: no changes
 	 * @Return: whether or not this point is under attack by an enemy pawn
 	 */
 	private boolean pawnCanAttack(Point pointToCheck) {
 		ArrayList<Point> possiblePawnLocations= new ArrayList<Point>();
-		
+
 		//puts the appropriate positions a pawn could attack from into the list
 		if(isWhitesTurn())
 		{
@@ -658,7 +657,7 @@ import javax.swing.JOptionPane;
 			possiblePawnLocations.add(new Point(pointToCheck.x-1,pointToCheck.y-1));
 
 		}
-		
+
 		for(Point p : possiblePawnLocations)
 		{
 			if(myBoard.isOnBoard(p))
@@ -685,14 +684,14 @@ import javax.swing.JOptionPane;
 		directions.add(new Point(0,-1));
 		directions.add(new Point(1,0));
 		directions.add(new Point(-1,0));
-		
+
 		//iterates through each direction and sees if an enemy rook or queen is in the way
 		for(Point direction : directions)
 		{
 			boolean keepGoing = true;
 			Piece endPiece=null;
 			Point mightHavePiece=new Point(pointToCheck.x+direction.x,pointToCheck.y+direction.y);
-		
+
 			while (endPiece==null&&keepGoing)
 			{
 				if(!myBoard.isOnBoard(mightHavePiece))
@@ -709,8 +708,8 @@ import javax.swing.JOptionPane;
 			{
 				return true;
 			}
-			
-			
+
+
 		}
 		return false;//nothing diagonal could attack, so return false
 	}
@@ -722,7 +721,7 @@ import javax.swing.JOptionPane;
 	private boolean knightsCanAttack(Point pointToCheck) {
 		// TODO Auto-generated method stub
 		ArrayList<Point> possibleKnightAttacks= new ArrayList<Point>();
-		
+
 		//adds all L shaped shifts from the pointToCheck to the list
 		for(int dx=-1;dx<=1;dx+=2)
 		{
@@ -731,14 +730,14 @@ import javax.swing.JOptionPane;
 				possibleKnightAttacks.add(new Point(pointToCheck.x+dx,pointToCheck.y+dy));
 				possibleKnightAttacks.add(new Point(pointToCheck.x+dy,pointToCheck.y+dx));
 			}
-			
+
 		}
 		for(Point p : possibleKnightAttacks)
 		{
 			if(myBoard.isOnBoard(p))//only check the point if it is on the board
 			{
 				Piece thePiece = getPiece(p);
-				
+
 				//if the piece isn't null, and it is a Knight, and it has the opposite color, the position is under attack
 				if(thePiece!=null&&thePiece instanceof Knight&& thePiece.isWhite!=this.isWhitesTurn()){
 					return true;
@@ -763,14 +762,14 @@ import javax.swing.JOptionPane;
 				directions.add(new Point(dx,dy));
 			}
 		}
-		
+
 		//iterates through each direction and sees if an enemy bishop or queen is in the way
 		for(Point direction : directions)
 		{
 			boolean keepGoing = true;
 			Piece endPiece=null;
 			Point mightHavePiece=new Point(pointToCheck.x+direction.x,pointToCheck.y+direction.y);
-		
+
 			while (endPiece==null&&keepGoing)
 			{
 				if(!myBoard.isOnBoard(mightHavePiece))
@@ -787,12 +786,12 @@ import javax.swing.JOptionPane;
 			{
 				return true;
 			}
-			
-			
+
+
 		}
 		return false;//nothing diagonal could attack, so return false
 	}
-	
+
 	/* @Pre: None
 	 * @Post: move the selected piece to the selected location if it is a valid move
 	 * @Return: whether the piece actually moved
@@ -807,7 +806,7 @@ import javax.swing.JOptionPane;
 		{
 			if(chosenPiece instanceof King&&Math.abs(chosenPiece.getX()-p.x)==2){//then this is a castling move, we need to move the appropriate rook
 				moveCastlingRook(p);
-				
+
 			}
 			else if(chosenPiece instanceof Pawn &&Math.abs(chosenPiece.getX()-p.x)==1)//if it is a pawn that is moving diagonally
 			{
@@ -827,7 +826,7 @@ import javax.swing.JOptionPane;
 			chosenPiece.wasMoved();
 			chosenPiece=null;
 			possibleMoves=null;
-			whitesTurn=!whitesTurn;
+			//whitesTurn=!whitesTurn;
 			return true;
 		}else//if the point isn't a possible move, then deselect the piece and remove the possible moves
 		{
@@ -835,7 +834,7 @@ import javax.swing.JOptionPane;
 			possibleMoves=null;
 			return false;
 		}
-			
+
 	}
 
 	/* @Pre: Called by Game.movePiece(Point) when a castling move is made
@@ -850,7 +849,7 @@ import javax.swing.JOptionPane;
 			{
 				throw new AssertionError("the piece being moved by the castling isn't a rook");
 			}
-			
+
 			myBoard.movePiece(theRookToMove, new Point(2,p.y));
 			theRookToMove.wasMoved();
 		}else//right castle, mvoe rook 3 left
@@ -863,7 +862,7 @@ import javax.swing.JOptionPane;
 			myBoard.movePiece(theRookToMove,new Point(4,chosenPiece.getY()));
 			theRookToMove.wasMoved();
 		}
-		
+
 	}
 
 
@@ -872,21 +871,29 @@ import javax.swing.JOptionPane;
 	 * @Return: None
 	 */
 	private void upgradePawn(Piece thePiece) {
+		int whatToUpgradeTo=-1; 
+		Object answer = null;
 		Object[] possibilities = {"Queen", "Knight", "Rook", "Bishop"};
-		Object answer =null;
-		while(answer ==null)
+		if(isAI(isWhitesTurn()))//then it is the AI of the current turn
 		{
-			answer = JOptionPane.showInputDialog(null, "Your pawn can now be upgraded. What would you like it to be?", "Upgrade", JOptionPane.PLAIN_MESSAGE, null, possibilities, "Queen");
+			whatToUpgradeTo= myFrame.getAI(isWhitesTurn()).chooseUpgrade(thePiece.myLocation);
+		}else
+		{
+			while(answer ==null)
+			{
+				answer = JOptionPane.showInputDialog(null, "Your pawn can now be upgraded. What would you like it to be?", "Upgrade", JOptionPane.PLAIN_MESSAGE, null, possibilities, "Queen");
+			}
+
 		}
-		
+
 		Piece newPiece;
-		if(answer==possibilities[0])
+		if(answer==possibilities[0]||whatToUpgradeTo==0)
 		{
 			newPiece=new Queen(thePiece.isWhite, new Point(thePiece.getX(),thePiece.getY()), this.getBoard());
-		}else if(answer == possibilities[1])
+		}else if(answer == possibilities[1]||whatToUpgradeTo==1)
 		{
 			newPiece = new Knight(thePiece.isWhite, new Point(thePiece.getX(),thePiece.getY()), this.getBoard());
-		}else if (answer == possibilities[2])
+		}else if (answer == possibilities[2]||whatToUpgradeTo==2 )
 		{
 			newPiece = new Rook(thePiece.isWhite, new Point(thePiece.getX(),thePiece.getY()), this.getBoard());
 		}else
@@ -894,36 +901,51 @@ import javax.swing.JOptionPane;
 			newPiece=new Bishop(thePiece.isWhite, new Point(thePiece.getX(),thePiece.getY()), this.getBoard());
 		}
 		myBoard.upgradePawn(thePiece.myLocation, newPiece);
-		
+
 	}
-	
-	 Piece getPiece(Point p)
+
+	/* @Pre: None
+	 * @Post: No changes
+	 * @Return: Whether the given player is an ai or not
+	 */
+	public boolean isAI(boolean color) {
+		// TODO Auto-generated method stub
+		if(color==WHITE)
+		{
+			return this.whiteController>0;
+		}else
+		{
+			return this.blackController>0;
+		}
+	}
+
+	Piece getPiece(Point p)
 	{
 		return myBoard.getPiece(p);
 	}
-	
+
 	public String toString()
 	{
 		return myBoard.toString();
 	}
-	
-	 Board getBoard()
+
+	Board getBoard()
 	{
 		return myBoard;
 	}
-	
+
 	public boolean isWhitesTurn() {
 		// TODO Auto-generated method stub
 		return whitesTurn;
 	}
-	
 
-	 ArrayList<Piece> getPieces(boolean color)
+
+	ArrayList<Piece> getPieces(boolean color)
 	{
 		return myBoard.getPieces(color);
 	}
-	
-	private static Point getDistance(Point point, Point point2) {
+
+	public static Point getDistance(Point point, Point point2) {
 		// TODO Auto-generated method stub
 		return new Point(point.x-point2.x,point.y-point2.y);
 	}
@@ -932,7 +954,7 @@ import javax.swing.JOptionPane;
 	 * @Post: None
 	 * @Return: An ArrayList of all points which lie between point and point2
 	 */
-	 static ArrayList<Point> getPointsBetween(Point point, Point point2) {
+	static ArrayList<Point> getPointsBetween(Point point, Point point2) {
 		// TODO Auto-generated method stub
 		ArrayList<Point> answer= new ArrayList<Point>();
 		Point difference = Game.getDistance(point, point2);
@@ -945,10 +967,10 @@ import javax.swing.JOptionPane;
 			if(difference.x!=0&&difference.y!=0)//isn't horizontal or vertical
 			{
 				throw new AssertionError("These points dont lie on a line that has a slope of 0, -1, 1 or inf");
-				
+
 			}
 		}
-		
+
 		if(difference.x!=0)
 		{
 			difference.x/=Math.abs(difference.x);//get to magnitude of one
@@ -966,12 +988,12 @@ import javax.swing.JOptionPane;
 			pointToAdd= new Point(pointToAdd.x-dx,pointToAdd.y-dy);
 		}
 		return answer;
-		
+
 	}
 
-	 void deselectPiece() {
+	void deselectPiece() {
 		this.selectPiece(new Point(100,100));//outside of the board, will deselect piece
-		
+
 	}
 
 	public boolean isGameOver() {
@@ -1005,6 +1027,24 @@ import javax.swing.JOptionPane;
 		gameOver=true;
 		JOptionPane.showMessageDialog(null, "Tie game.");
 
+	}
+
+	public void parseInput(Move chosenMove) {
+		this.deselectPiece();
+		this.parseInput(chosenMove.getPreviousLocation());
+		this.parseInput(chosenMove.getCurrentLocation());
+		
+	}
+
+	public void displayTieOrWinMessage() {
+		if(this.isInCheck()&&!this.canGetOutOfCheck())
+		{
+			this.displayGameOverMessage();
+		}
+		else
+		{
+			this.displayTieMessage();
+		}
 	}
 
 }

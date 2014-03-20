@@ -1,8 +1,6 @@
 package com.DanAnderson.Chess;
 
 import java.awt.Point;
-import java.util.ArrayList;
-import java.util.Collection;
 
 public class Rook extends LongDistancePiece {
 
@@ -19,10 +17,6 @@ public class Rook extends LongDistancePiece {
 		hasMoved=false;
 	}	
 	
-//	public String toString()
-//	{
-//		return "R"+getColor();
-//	}
 	
 	public String getImageName() {
 		// TODO Auto-generated method stub

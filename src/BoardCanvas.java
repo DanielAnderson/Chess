@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
-import javax.swing.JOptionPane;
 
 public class BoardCanvas extends Canvas implements MouseListener {
 
@@ -21,8 +20,6 @@ public class BoardCanvas extends Canvas implements MouseListener {
 	private static final long serialVersionUID = 1L;
 	private Game myGame;
 	private int myCellSize;
-	private Graphics canvasBackground;
-	private BufferedImage backgroundImage;
 	private int myWidth;
 	private int myHeight;
 	BufferedImage offscreen;
@@ -44,12 +41,11 @@ public class BoardCanvas extends Canvas implements MouseListener {
 	 * @Post: None
 	 * @Return: A boardcanvas
 	 */
-	public BoardCanvas(int sizeOfCell)
+	public BoardCanvas(int sizeOfCell, int whiteController, int blackController, ChessFrame theFrame)
 	{
-		
 		stringToImage = new HashMap<String,BufferedImage>();
 		myCellSize=sizeOfCell;
-		myGame=createGame();
+		myGame=createGame(whiteController, blackController, theFrame);
 		this.addMouseListener(this);
 
 		setupImages();
@@ -60,32 +56,12 @@ public class BoardCanvas extends Canvas implements MouseListener {
 
 	}
 
-	private Game createGame() {
+	private Game createGame(int whiteController, int blackController, ChessFrame theFrame) {
 		// TODO Auto-generated method stub
-		int whiteControlled=promptForInput("white");
-		int blackControlled=promptForInput("black");
-		return new Game(whiteControlled,blackControlled);
+		return new Game(whiteController,blackController, theFrame);
 		
 	}
 
-	private int promptForInput(String string) {
-		// TODO Auto-generated method stub
-		Object[] possibilities = {"Human Controlled", "AI-random"};
-		Object answer =null;
-		while(answer ==null)
-		{
-			answer = JOptionPane.showInputDialog(null, "What would you like the "+string+" player to be controlled by?", null, JOptionPane.PLAIN_MESSAGE, null, possibilities, possibilities[0]);
-		}
-		
-		if(answer ==possibilities[0])
-		{
-			return 0;
-		}else
-		{
-			return 1;
-		}
-
-	}
 
 	//sets up the images for the pieces
 	private void setupImages() {
